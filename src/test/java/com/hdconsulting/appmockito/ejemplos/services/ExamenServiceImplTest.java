@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ExamenServiceImplTest {
 
     @Mock
-    ExamenRepository repository ;
+    ExamenRepository repository;
 
     @Mock
     PreguntaRepository preguntaRepository;
@@ -56,8 +56,8 @@ class ExamenServiceImplTest {
 
 
         assertTrue(examen.isPresent());
-       assertEquals(5L, examen.orElseThrow().getId());
-       assertEquals("Matematicas", examen.orElseThrow().getNombre());
+        assertEquals(5L, examen.orElseThrow().getId());
+        assertEquals("Matematicas", examen.orElseThrow().getNombre());
     }
 
 
@@ -140,13 +140,13 @@ class ExamenServiceImplTest {
     void testManejoException() {
         when(repository.findAll()).thenReturn(Datos.EXAMENES_ID_NULL);
         when(preguntaRepository.findPreguntasPorExamenId(isNull())).thenThrow(IllegalArgumentException.class);
-      Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             service.findExamenPorNombreConPreguntas("Matematicas");
         });
-      assertEquals(IllegalArgumentException.class, exception.getClass());
+        assertEquals(IllegalArgumentException.class, exception.getClass());
 
-      verify(repository).findAll();
-      verify(preguntaRepository).findPreguntasPorExamenId(isNull());
+        verify(repository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(isNull());
     }
 
     @Test
@@ -175,6 +175,7 @@ class ExamenServiceImplTest {
     public static class MyArgsMatchers implements ArgumentMatcher<Long> {
 
         private Long argument;
+
         @Override
         public boolean matches(Long argument) {
             this.argument = argument;
@@ -184,9 +185,10 @@ class ExamenServiceImplTest {
         @Override
         public String toString() {
             return "Es para un mensaje personalizado de error que imprime mockito en " +
-                    "caso de falle el test " +  argument + " debe ser un entero positivo";
+                    "caso de falle el test " + argument + " debe ser un entero positivo";
         }
     }
+
     @Test
     void testArgumentCaptor() {
         when(repository.findAll()).thenReturn(Datos.EXAMENES);
@@ -209,5 +211,49 @@ class ExamenServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> {
             service.guardar(examen);
         });
+    }
+
+    @Test
+    void testDoAnswer() {
+
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        doAnswer(invocation -> {
+            Long id = invocation.getArgument(0);
+            return id == 5L ? Datos.PREGUNTAS : null;
+        }).when(preguntaRepository).findPreguntasPorExamenId(anyLong());
+
+        Examen examen = service.findExamenPorNombreConPreguntas("Matematicas");
+        assertEquals(5L, examen.getId());
+        assertEquals("Matematicas", examen.getNombre());
+
+    }
+
+    @Test
+    void testDoAnswer2() {
+        //Given
+        Examen newExamen = Datos.EXAMEN;
+        newExamen.setPreguntas(Datos.PREGUNTAS);
+
+        doAnswer(new Answer<Examen>() {
+
+            Long secuencia = 8L;
+
+            @Override
+            public Examen answer(InvocationOnMock invocation) throws Throwable {
+                Examen examen = invocation.getArgument(0);
+                examen.setId(secuencia++);
+                return examen;
+            }
+        }).when(repository).guardar(any(Examen.class));
+
+        // When
+        Examen examen = service.guardar(newExamen);
+
+        //Then
+        assertNotNull(examen.getId());
+        assertEquals(8L, examen.getId());
+        assertEquals("Fisica", examen.getNombre());
+        verify(repository).guardar(any(Examen.class));
+        verify(preguntaRepository).guardarVarias(anyList());
     }
 }

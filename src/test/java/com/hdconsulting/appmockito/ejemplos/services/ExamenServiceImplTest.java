@@ -1,9 +1,11 @@
 package com.hdconsulting.appmockito.ejemplos.services;
 
+import com.hdconsulting.appmockito.ejemplos.Datos;
 import com.hdconsulting.appmockito.ejemplos.dao.ExamenRepository;
+import com.hdconsulting.appmockito.ejemplos.dao.ExamenRepositoryImpl;
 import com.hdconsulting.appmockito.ejemplos.dao.PreguntaRepository;
+import com.hdconsulting.appmockito.ejemplos.dao.PreguntaRepositoryImpl;
 import com.hdconsulting.appmockito.ejemplos.models.Examen;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -13,7 +15,6 @@ import org.mockito.stubbing.Answer;
 
 import static org.mockito.Mockito.*;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -24,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class ExamenServiceImplTest {
 
     @Mock
-    ExamenRepository repository;
+    ExamenRepositoryImpl repository;
 
     @Mock
-    PreguntaRepository preguntaRepository;
+    PreguntaRepositoryImpl preguntaRepository;
 
     @InjectMocks
     ExamenServiceImpl service;
@@ -255,5 +256,14 @@ class ExamenServiceImplTest {
         assertEquals("Fisica", examen.getNombre());
         verify(repository).guardar(any(Examen.class));
         verify(preguntaRepository).guardarVarias(anyList());
+    }
+
+    @Test
+    void testDoCallRealMethod() {
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        doCallRealMethod().when(preguntaRepository).findPreguntasPorExamenId(anyLong());
+        Examen examen = service.findExamenPorNombreConPreguntas("Matematicas");
+        assertEquals(5L, examen.getId());
+        assertEquals("Matematicas", examen.getNombre());
     }
 }

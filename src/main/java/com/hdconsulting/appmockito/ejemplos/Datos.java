@@ -1,4 +1,4 @@
-package com.hdconsulting.appmockito.ejemplos.services;
+package com.hdconsulting.appmockito.ejemplos;
 
 import com.hdconsulting.appmockito.ejemplos.models.Examen;
 

@@ -174,7 +174,7 @@ class ExamenServiceImplTest {
 
     public static class MyArgsMatchers implements ArgumentMatcher<Long> {
 
-private Long argument;
+        private Long argument;
         @Override
         public boolean matches(Long argument) {
             this.argument = argument;
@@ -199,4 +199,15 @@ private Long argument;
         assertEquals(5L, captor.getValue());
     }
 
+    //Impossible d'utiliser when(tata)thenThrow(toto) sur une methode qui retourne void
+    @Test
+    void testDothrow() {
+        Examen examen = Datos.EXAMEN;
+        doThrow(IllegalArgumentException.class).when(preguntaRepository).guardarVarias(anyList());
+
+        examen.setPreguntas(Datos.PREGUNTAS);
+        assertThrows(IllegalArgumentException.class, () -> {
+            service.guardar(examen);
+        });
+    }
 }

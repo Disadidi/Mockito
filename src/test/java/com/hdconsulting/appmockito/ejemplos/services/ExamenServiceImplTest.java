@@ -137,13 +137,26 @@ class ExamenServiceImplTest {
 
     @Test
     void testManejoException() {
-        when(repository.findAll()).thenReturn(Datos.EXAMENES);
-        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenThrow(IllegalArgumentException.class);
+        when(repository.findAll()).thenReturn(Datos.EXAMENES_ID_NULL);
+        when(preguntaRepository.findPreguntasPorExamenId(isNull())).thenThrow(IllegalArgumentException.class);
       Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             service.findExamenPorNombreConPreguntas("Matematicas");
         });
-
       assertEquals(IllegalArgumentException.class, exception.getClass());
+
+      verify(repository).findAll();
+      verify(preguntaRepository).findPreguntasPorExamenId(isNull());
+    }
+
+    @Test
+    void testArgumentMatchers() {
+        when(repository.findAll()).thenReturn(Datos.EXAMENES);
+        when(preguntaRepository.findPreguntasPorExamenId(anyLong())).thenReturn(Datos.PREGUNTAS);
+        service.findExamenPorNombreConPreguntas("Matematicas");
+
+        verify(repository).findAll();
+        verify(preguntaRepository).findPreguntasPorExamenId(5L);
+        //verify(preguntaRepository).findPreguntasPorExamenId(argThat(arg -> arg != null && arg.equals(6L))); même chose
 
     }
 }
